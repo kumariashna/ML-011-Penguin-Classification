@@ -10,7 +10,7 @@ It demonstrates how Machine Learning classification algorithms can identify patt
 
 ## 2. Project Information
 
-* Project ID: ML-011
+* Project ID: ML - 011
 * Project Name: Penguin Species Classification
 * Domain: Wildlife / Machine Learning
 * Type: Supervised Machine Learning
