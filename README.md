@@ -206,9 +206,7 @@ Through this project, learners understand:
 
 This project is developed for educational and Machine Learning practice purposes. Predictions are based on the available dataset and should not be treated as professional biological identification.
 
-## 14. Author
-
-**Rajan Sharma**
+## 14. Team
 
 AI Engineer | Full Stack Developer
 
