@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ed">
+  <meta name="description" content="An illustrated field guide to the Palmer Penguins dataset and a machine-learning classification study.">
+  <title>Field Notes — Penguin Classification</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f5f4ed;
+      --paper-dark: #eae9df;
+      --ink: #152b35;
+      --muted: #64736f;
+      --line: #d7d9ce;
+      --ocean: #174e53;
+      --ocean-light: #d8e7dc;
+      --coral: #e77a5b;
+      --yellow: #edc76a;
+      --white: #fffef9;
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: "Segoe UI", Arial, sans-serif;
+      --mono: "Cascadia Code", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+    button { font: inherit; }
+
+    .wrap { width: min(1120px, calc(100% - 64px)); margin-inline: auto; }
+
+    .site-header {
+      position: sticky;
+      z-index: 10;
+      top: 0;
+      border-bottom: 1px solid rgb(21 43 53 / 9%);
+      background: rgb(245 244 237 / 94%);
+      backdrop-filter: blur(14px);
+    }
+
+    .nav {
+      display: flex;
+      min-height: 74px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 35px;
+      height: 35px;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--paper);
+      background: var(--ocean);
+      font-family: var(--serif);
+      font-size: 15px;
+      letter-spacing: -.08em;
+    }
+
+    .brand-name { font-family: var(--serif); font-size: 19px; letter-spacing: -.04em; }
+    .nav-links { display: flex; align-items: center; gap: 29px; }
+    .nav-links a { color: #435751; font-size: 12px; text-decoration: none; }
+    .nav-links a:hover, .nav-links a:focus-visible { color: var(--coral); }
+    .nav-links .nav-cta { color: var(--ocean); font-weight: 700; }
+
+    .hero { padding: 66px 0 62px; }
+
+    .hero-grid {
+      display: grid;
+      min-height: 470px;
+      grid-template-columns: 1fr .93fr;
+      align-items: center;
+      gap: 46px;
+    }
+
+    .eyebrow, .section-kicker {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--ocean);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before, .section-kicker::before {
+      width: 20px;
+      height: 1px;
+      background: var(--coral);
+      content: "";
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 580px;
+      margin: 21px 0 19px;
+      font-family: var(--serif);
+      font-size: clamp(52px, 6vw, 78px);
+      font-weight: 400;
+      letter-spacing: -.065em;
+      line-height: .99;
+    }
+
+    h1 em { color: var(--ocean); font-weight: 400; }
+
+    .hero-copy {
+      max-width: 450px;
+      margin-bottom: 26px;
+      color: #5e6d68;
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .button-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .button {
+      display: inline-flex;
+      min-height: 45px;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 0 18px;
+      border: 1px solid var(--ocean);
+      border-radius: 3px;
+      color: var(--white);
+      background: var(--ocean);
+      font-size: 12px;
+      font-weight: 650;
+      text-decoration: none;
+      transition: background .2s, color .2s, transform .2s;
+    }
+
+    .button:hover { transform: translateY(-2px); background: #103f43; }
+    .button.secondary { color: var(--ocean); background: transparent; }
+    .button.secondary:hover { color: var(--white); background: var(--ocean); }
+    .button .arrow { font-size: 17px; line-height: 0; }
+
+    .field-card {
+      position: relative;
+      display: flex;
+      min-height: 420px;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      padding: 25px 27px 22px;
+      border-radius: 3px;
+      background: #dce8df;
+    }
+
+    .field-card::before {
+      position: absolute;
+      top: 15%;
+      right: -14%;
+      width: 320px;
+      height: 320px;
+      border: 1px solid rgb(23 78 83 / 17%);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .field-card::after {
+      position: absolute;
+      top: 22%;
+      right: -4%;
+      width: 260px;
+      height: 260px;
+      border: 1px solid rgb(23 78 83 / 13%);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .card-label, .card-foot { position: relative; z-index: 1; }
+    .card-label { display: flex; justify-content: space-between; gap: 12px; }
+    .card-label span, .card-foot span { color: #44625c; font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+    .card-label .index { color: var(--coral); }
+
+    .penguin-art {
+      position: absolute;
+      inset: 56px 18px 44px;
+      width: calc(100% - 36px);
+      height: calc(100% - 100px);
+    }
+
+    .card-foot { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid rgb(23 78 83 / 18%); padding-top: 13px; }
+
+    .ticker { border-block: 1px solid var(--line); background: rgb(255 254 249 / 44%); }
+    .ticker-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+    .ticker-item { display: flex; min-height: 107px; align-items: center; gap: 15px; padding: 20px 27px; }
+    .ticker-item + .ticker-item { border-left: 1px solid var(--line); }
+    .ticker-value { color: var(--ocean); font-family: var(--serif); font-size: 38px; letter-spacing: -.06em; white-space: nowrap; }
+    .ticker-label { color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .ticker-label strong { display: block; margin-bottom: 2px; color: var(--ink); font-size: 12px; }
+
+    .section { padding: 92px 0; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 30px; margin-bottom: 34px; }
+    .section-heading h2 { max-width: 520px; margin: 14px 0 0; font-family: var(--serif); font-size: clamp(36px, 4vw, 51px); font-weight: 400; letter-spacing: -.055em; line-height: 1.03; }
+    .section-heading > p { max-width: 340px; margin: 0 0 4px; color: var(--muted); font-size: 13px; line-height: 1.75; }
+
+    .species-section { background: var(--white); }
+
+    .species-layout { display: grid; grid-template-columns: .87fr 1.13fr; gap: 28px; }
+    .species-list { display: grid; gap: 9px; }
+
+    .species-tab {
+      display: grid;
+      grid-template-columns: 34px 1fr 20px;
+      align-items: center;
+      gap: 12px;
+      min-height: 73px;
+      padding: 12px 15px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      color: var(--ink);
+      text-align: left;
+      background: transparent;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+
+    .species-tab:hover { border-color: #9ab7a3; }
+    .species-tab[aria-pressed="true"] { border-color: var(--ocean); background: #edf3ec; }
+    .species-dot { width: 11px; height: 11px; border: 2px solid currentColor; border-radius: 50%; }
+    .species-tab:nth-child(1) .species-dot { color: #e77a5b; }
+    .species-tab:nth-child(2) .species-dot { color: #739c88; }
+    .species-tab:nth-child(3) .species-dot { color: #d1a936; }
+    .species-name { font-family: var(--serif); font-size: 18px; }
+    .species-count { color: var(--muted); font-family: var(--mono); font-size: 10px; }
+    .species-arrow { color: var(--ocean); font-size: 18px; }
+
+    .species-detail { display: flex; min-height: 237px; flex-direction: column; justify-content: space-between; padding: 26px 28px; background: var(--paper); }
+    .species-detail .detail-label { color: var(--coral); font-family: var(--mono); font-size: 9px; letter-spacing: .13em; text-transform: uppercase; }
+    .species-detail h3 { margin: 16px 0 9px; font-family: var(--serif); font-size: 31px; font-weight: 400; letter-spacing: -.04em; }
+    .species-detail p { max-width: 400px; margin-bottom: 21px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .detail-stats { display: flex; flex-wrap: wrap; gap: 12px 24px; padding-top: 13px; border-top: 1px solid var(--line); }
+    .detail-stat { color: var(--muted); font-size: 10px; }
+    .detail-stat strong { display: block; margin-bottom: 3px; color: var(--ink); font-family: var(--mono); font-size: 12px; font-weight: 500; }
+
+    .research-section { background: var(--paper); }
+
+    .research-grid { display: grid; grid-template-columns: 1.13fr .87fr; gap: 45px; align-items: start; }
+    .chart-panel { min-width: 0; padding: 20px; border: 1px solid var(--line); background: var(--white); }
+    .chart-top { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 16px; }
+    .chart-title { margin: 0; font-family: var(--serif); font-size: 20px; font-weight: 400; letter-spacing: -.02em; }
+    .chart-tag { color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
+    .chart-image-frame { display: grid; min-height: 275px; place-items: center; overflow: hidden; background: #fbfbf8; }
+    .chart-image-frame img { display: block; width: 100%; max-height: 330px; object-fit: contain; }
+    .chart-caption { min-height: 39px; margin: 14px 0 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .chart-tabs { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+    .chart-tab { padding: 8px 10px; border: 1px solid var(--line); border-radius: 2px; color: #4a605b; background: transparent; font-size: 10px; cursor: pointer; }
+    .chart-tab:hover, .chart-tab[aria-pressed="true"] { border-color: var(--ocean); color: var(--white); background: var(--ocean); }
+
+    .model-panel { padding: 3px 0; }
+    .model-panel h3 { margin: 12px 0 10px; font-family: var(--serif); font-size: 30px; font-weight: 400; letter-spacing: -.04em; }
+    .model-panel > p { color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .model-list { display: grid; gap: 20px; margin: 28px 0 25px; }
+    .model-head { display: flex; justify-content: space-between; margin-bottom: 7px; font-size: 11px; }
+    .model-head span:last-child { color: var(--ocean); font-family: var(--mono); }
+    .bar-track { height: 5px; background: #e4e6dc; }
+    .bar-fill { height: 100%; background: #85aa91; }
+    .model-row:first-child .bar-fill { background: var(--coral); }
+    .model-row:last-child .bar-fill { background: #c3ccbd; }
+    .model-note { padding: 15px; border-left: 2px solid var(--coral); color: #53645f; background: #eeeee5; font-size: 10px; line-height: 1.75; }
+
+    .method-section { color: #f5f4ed; background: #173c40; }
+    .method-section .section-kicker { color: #bdd3c3; }
+    .method-section .section-heading > p { color: #b6c8c0; }
+    .method-section .section-heading h2 { color: var(--white); }
+    .method-steps { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid rgb(245 244 237 / 23%); }
+    .method-step { min-height: 174px; padding: 22px 22px 16px 0; }
+    .method-step + .method-step { padding-left: 22px; border-left: 1px solid rgb(245 244 237 / 23%); }
+    .step-index { color: var(--yellow); font-family: var(--mono); font-size: 10px; }
+    .method-step h3 { margin: 24px 0 8px; color: var(--white); font-family: var(--serif); font-size: 19px; font-weight: 400; }
+    .method-step p { max-width: 215px; margin: 0; color: #b6c8c0; font-size: 11px; line-height: 1.7; }
+
+    .closing { padding: 72px 0; }
+    .closing-card { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 32px 38px; border: 1px solid var(--line); background: var(--white); }
+    .closing-card h2 { margin: 10px 0 7px; font-family: var(--serif); font-size: 32px; font-weight: 400; letter-spacing: -.04em; }
+    .closing-card p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .closing-actions { display: flex; flex-shrink: 0; flex-wrap: wrap; gap: 9px; }
+
+    .site-footer { padding: 20px 0 25px; border-top: 1px solid var(--line); }
+    .footer-row { display: flex; justify-content: space-between; gap: 18px; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .04em; }
+    .footer-row a { text-decoration: none; }
+    .footer-row a:hover { color: var(--ocean); }
+
+    @media (max-width: 800px) {
+      .hero-grid { grid-template-columns: 1fr 0.85fr; gap: 25px; }
+      .field-card { min-height: 365px; }
+      .section { padding: 70px 0; }
+      .research-grid { gap: 27px; }
+      .method-step { padding-right: 14px; }
+      .method-step + .method-step { padding-left: 14px; }
+    }
+
+    @media (max-width: 620px) {
+      .wrap { width: min(100% - 36px, 500px); }
+      .nav { min-height: 64px; }
+      .nav-links { gap: 15px; }
+      .nav-links a { font-size: 10px; }
+      .nav-links a:nth-child(2) { display: none; }
+      .brand-name { font-size: 17px; }
+      .hero { padding: 45px 0 39px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 31px; }
+      h1 { max-width: 460px; font-size: clamp(54px, 15vw, 72px); }
+      .hero-copy { font-size: 13px; }
+      .field-card { min-height: 340px; }
+      .ticker-grid { grid-template-columns: 1fr; }
+      .ticker-item { min-height: 79px; padding: 14px 8px; }
+      .ticker-item + .ticker-item { border-top: 1px solid var(--line); border-left: 0; }
+      .ticker-value { min-width: 106px; font-size: 34px; }
+      .section { padding: 63px 0; }
+      .section-heading { align-items: start; flex-direction: column; gap: 15px; margin-bottom: 25px; }
+      .section-heading > p { font-size: 12px; }
+      .species-layout, .research-grid { grid-template-columns: 1fr; }
+      .species-detail { min-height: 220px; }
+      .chart-panel { padding: 14px; }
+      .chart-image-frame { min-height: 215px; }
+      .chart-tabs { gap: 5px; }
+      .chart-tab { padding: 8px; font-size: 9px; }
+      .model-panel { padding-top: 15px; }
+      .method-steps { grid-template-columns: 1fr 1fr; }
+      .method-step { min-height: 155px; padding: 18px 12px 15px 0; }
+      .method-step + .method-step { padding-left: 12px; }
+      .method-step:nth-child(3) { padding-left: 0; border-top: 1px solid rgb(245 244 237 / 23%); border-left: 0; }
+      .method-step:nth-child(4) { border-top: 1px solid rgb(245 244 237 / 23%); }
+      .method-step h3 { margin-top: 18px; }
+      .closing { padding: 45px 0; }
+      .closing-card { align-items: start; flex-direction: column; padding: 25px 22px; }
+      .closing-card h2 { font-size: 29px; }
+      .footer-row { flex-direction: column; gap: 9px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav wrap" aria-label="Main navigation">
+      <a class="brand" href="#top" aria-label="Field Notes home">
+        <span class="brand-mark" aria-hidden="true">F.</span>
+        <span class="brand-name">Field Notes <span style="color:#e77a5b">/</span> 011</span>
+      </a>
+      <div class="nav-links">
+        <a href="#species">The species</a>
+        <a href="#findings">Findings</a>
+        <a href="#method">Method</a>
+        <a class="nav-cta" href="ML_011_Penguin_Classification.ipynb">Open notebook <span aria-hidden="true">↗</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-grid wrap">
+        <div>
+          <div class="eyebrow">A machine-learning field study</div>
+          <h1>Meet the<br>penguins behind<br><em>the data.</em></h1>
+          <p class="hero-copy">A closer look at three Antarctic penguin species—and what their measurements can teach us about classification.</p>
+          <div class="button-row">
+            <a class="button" href="#findings">Explore the findings <span class="arrow" aria-hidden="true">↘</span></a>
+            <a class="button secondary" href="#species">Meet the species</a>
+          </div>
+        </div>
+
+        <div class="field-card" aria-label="Illustration of a penguin on an Antarctic landscape">
+          <div class="card-label">
+            <span>Palmer Archipelago</span>
+            <span class="index">Field record &nbsp; 01 / 03</span>
+          </div>
+          <svg class="penguin-art" viewBox="0 0 520 360" role="img" aria-labelledby="penguin-title">
+            <title id="penguin-title">A gentoo penguin standing among Antarctic ice and sea</title>
+            <path d="M0 245 88 164l48 46 89-114 105 122 67-73 123 106v109H0Z" fill="#bdd5c8"/>
+            <path d="m225 96 53 60-52-14-49 10Z" fill="#eaf1e7"/>
+            <path d="m0 252 96-49 62 43 65-19 82 44 68-27 79 30 68-27v113H0Z" fill="#91b5aa"/>
+            <path d="M0 294q58-18 116 0t116 0 116 0 116 0 116 0v66H0Z" fill="#467e7c"/>
+            <path d="M0 321q55-12 110 0t110 0 110 0 110 0 110 0v39H0Z" fill="#2f6567" opacity=".8"/>
+            <path d="M368 258c4-62-9-112-39-135-18-14-47-10-60 12-15 25-16 68-5 112l-26 42 17 10 36-32 31 5 26 34 21-7-17-41Z" fill="#173c40"/>
+            <path d="M315 136c13-14 33-14 44 0 15 18 18 57 13 92-7 32-19 55-41 56-23 1-37-26-42-58-5-36 6-73 26-90Z" fill="#faf8ef"/>
+            <path d="M319 137c6-11 20-16 31-9 11 8 15 25 12 38-4 14-13 22-27 23-13 1-22-9-23-23-1-11 1-22 7-29Z" fill="#173c40"/>
+            <path d="m349 168 30 9-27 10Z" fill="#e77a5b"/>
+            <circle cx="353" cy="158" r="2.8" fill="#f3cf70"/>
+            <path d="m274 193-39 49 34 2 19-33M349 248l40 37-30-2-26-22" fill="#173c40"/>
+            <path d="m298 293-4 12 30 2 3-10M336 294l2 12 29-3-7-10" fill="#e77a5b"/>
+            <path d="M72 264c19-25 43-27 65-9-17 1-29 7-38 17l-27-8Z" fill="#f5f4ed" opacity=".72"/>
+            <path d="M77 265c16-16 34-18 50-8" fill="none" stroke="#719a8e" stroke-width="2"/>
+            <circle cx="108" cy="278" r="2" fill="#e77a5b"/>
+            <path d="M405 128v28m-11-14h22" stroke="#f5f4ed" stroke-width="1" opacity=".7"/>
+          </svg>
+          <div class="card-foot">
+            <span>Antarctic Peninsula</span>
+            <span>63° South &nbsp; · &nbsp; 2007—09</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ticker" aria-label="Study at a glance">
+      <div class="ticker-grid wrap">
+        <div class="ticker-item">
+          <span class="ticker-value">333</span>
+          <span class="ticker-label"><strong>clean records</strong>Palmer Penguins dataset</span>
+        </div>
+        <div class="ticker-item">
+          <span class="ticker-value">03</span>
+          <span class="ticker-label"><strong>species</strong>Adelie · Chinstrap · Gentoo</span>
+        </div>
+        <div class="ticker-item">
+          <span class="ticker-value">97%</span>
+          <span class="ticker-label"><strong>best test accuracy</strong>Scaled KNN · 67 test records</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section species-section" id="species">
+      <div class="wrap">
+        <div class="section-heading">
+          <div>
+            <div class="section-kicker">01 &nbsp; The cast</div>
+            <h2>Three species.<br>Distinct signatures.</h2>
+          </div>
+          <p>Each record pairs a species label with measurements like bill length, flipper length and body mass. Select a species to explore its averages in the cleaned dataset.</p>
+        </div>
+
+        <div class="species-layout">
+          <div class="species-list" role="group" aria-label="Choose a penguin species">
+            <button class="species-tab" type="button" data-species="adelie" aria-pressed="true">
+              <span class="species-dot" aria-hidden="true"></span>
+              <span class="species-name">Adelie</span>
+              <span class="species-count">146 records</span>
+              <span class="species-arrow" aria-hidden="true">↗</span>
+            </button>
+            <button class="species-tab" type="button" data-species="chinstrap" aria-pressed="false">
+              <span class="species-dot" aria-hidden="true"></span>
+              <span class="species-name">Chinstrap</span>
+              <span class="species-count">68 records</span>
+              <span class="species-arrow" aria-hidden="true">↗</span>
+            </button>
+            <button class="species-tab" type="button" data-species="gentoo" aria-pressed="false">
+              <span class="species-dot" aria-hidden="true"></span>
+              <span class="species-name">Gentoo</span>
+              <span class="species-count">119 records</span>
+              <span class="species-arrow" aria-hidden="true">↗</span>
+            </button>
+          </div>
+
+          <article class="species-detail" aria-live="polite">
+            <div>
+              <span class="detail-label" id="species-island">Torgersen · Biscoe · Dream</span>
+              <h3 id="species-title">Adelie penguin</h3>
+              <p id="species-description">The most represented species in this cleaned sample. Its shorter flippers and lighter build give the classifier a useful point of comparison.</p>
+            </div>
+            <div class="detail-stats">
+              <span class="detail-stat"><strong id="species-bill">38.8 mm</strong>Mean bill length</span>
+              <span class="detail-stat"><strong id="species-flipper">190.1 mm</strong>Mean flipper length</span>
+              <span class="detail-stat"><strong id="species-mass">3,706 g</strong>Mean body mass</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section research-section" id="findings">
+      <div class="wrap">
+        <div class="section-heading">
+          <div>
+            <div class="section-kicker">02 &nbsp; The findings</div>
+            <h2>Small measurements.<br>Big differences.</h2>
+          </div>
+          <p>Explore the notebook’s visual analysis, then compare three classifiers evaluated on the same stratified test split.</p>
+        </div>
+
+        <div class="research-grid">
+          <div class="chart-panel">
+            <div class="chart-top">
+              <h3 class="chart-title" id="chart-title">Bill length by species</h3>
+              <span class="chart-tag">Notebook figure</span>
+            </div>
+            <div class="chart-image-frame">
+              <img id="chart-image" src="images/bill_length.png" alt="Box plot comparing bill length in millimeters across Adelie, Chinstrap and Gentoo penguins" loading="lazy">
+            </div>
+            <p class="chart-caption" id="chart-caption">Bill length helps distinguish species, especially when read alongside flipper length and body mass.</p>
+            <div class="chart-tabs" role="group" aria-label="Select a data visualization">
+              <button class="chart-tab" type="button" data-chart="bill" aria-pressed="true">Bill length</button>
+              <button class="chart-tab" type="button" data-chart="flipper" aria-pressed="false">Flipper length</button>
+              <button class="chart-tab" type="button" data-chart="mass" aria-pressed="false">Body mass</button>
+              <button class="chart-tab" type="button" data-chart="species" aria-pressed="false">Species count</button>
+              <button class="chart-tab" type="button" data-chart="correlation" aria-pressed="false">Correlation</button>
+            </div>
+          </div>
+
+          <div class="model-panel">
+            <div class="section-kicker">Model comparison</div>
+            <h3>Scaling made<br>the difference.</h3>
+            <p>All three models were evaluated on the same 67 held-out records. Standardizing the measurements gave KNN the strongest result.</p>
+            <div class="model-list" aria-label="Test accuracy by model">
+              <div class="model-row">
+                <div class="model-head"><span>Scaled KNN <span style="color:#e77a5b">· selected</span></span><span>97.0%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:97%"></div></div>
+              </div>
+              <div class="model-row">
+                <div class="model-head"><span>Decision Tree</span><span>92.5%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:92.5%"></div></div>
+              </div>
+              <div class="model-row">
+                <div class="model-head"><span>K-Nearest Neighbors</span><span>73.1%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:73.1%"></div></div>
+              </div>
+            </div>
+            <div class="model-note">Accuracy is from one stratified 80/20 split (random state 42). It describes this held-out sample—not a guarantee of performance on new data.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section method-section" id="method">
+      <div class="wrap">
+        <div class="section-heading">
+          <div>
+            <div class="section-kicker">03 &nbsp; The method</div>
+            <h2>From field data<br>to a better fit.</h2>
+          </div>
+          <p>A compact, reproducible workflow—from cleaning observations through comparing model performance.</p>
+        </div>
+        <div class="method-steps">
+          <article class="method-step">
+            <span class="step-index">01 / PREPARE</span>
+            <h3>Clean the records</h3>
+            <p>Drop rows with missing values and remove duplicate observations.</p>
+          </article>
+          <article class="method-step">
+            <span class="step-index">02 / ENCODE</span>
+            <h3>Make features usable</h3>
+            <p>Convert categorical values into numeric features for the models.</p>
+          </article>
+          <article class="method-step">
+            <span class="step-index">03 / TRAIN</span>
+            <h3>Keep a fair test</h3>
+            <p>Use a stratified 80/20 split so all three species stay represented.</p>
+          </article>
+          <article class="method-step">
+            <span class="step-index">04 / COMPARE</span>
+            <h3>Measure the results</h3>
+            <p>Compare a decision tree and KNN, with and without feature scaling.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing">
+      <div class="closing-card wrap">
+        <div>
+          <div class="section-kicker">Keep exploring</div>
+          <h2>The notebook is the whole story.</h2>
+          <p>Revisit the analysis, visualizations and model evaluation in the original Jupyter notebook.</p>
+        </div>
+        <div class="closing-actions">
+          <a class="button" href="ML_011_Penguin_Classification.ipynb">Open the notebook <span class="arrow" aria-hidden="true">↗</span></a>
+          <a class="button secondary" href="README.md">Project README</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-row wrap">
+      <span>FIELD NOTES &nbsp; / &nbsp; ML-011 PENGUIN CLASSIFICATION</span>
+      <span>Educational project · Palmer Penguins dataset</span>
+    </div>
+  </footer>
+
+  <script>
+    const speciesData = {
+      adelie: {
+        title: "Adelie penguin",
+        islands: "Torgersen · Biscoe · Dream",
+        description: "The most represented species in this cleaned sample. Its shorter flippers and lighter build give the classifier a useful point of comparison.",
+        bill: "38.8 mm",
+        flipper: "190.1 mm",
+        mass: "3,706 g"
+      },
+      chinstrap: {
+        title: "Chinstrap penguin",
+        islands: "Dream Island",
+        description: "A distinctive group in the dataset. Its average bill is the longest of the three, while its average body mass is close to Adelie.",
+        bill: "48.8 mm",
+        flipper: "195.8 mm",
+        mass: "3,733 g"
+      },
+      gentoo: {
+        title: "Gentoo penguin",
+        islands: "Biscoe Island",
+        description: "The largest-bodied group in this sample. Its longer flippers and higher average body mass make it especially distinct in the measurements.",
+        bill: "47.6 mm",
+        flipper: "217.2 mm",
+        mass: "5,092 g"
+      }
+    };
+
+    document.querySelectorAll(".species-tab").forEach((button) => {
+      button.addEventListener("click", () => {
+        const species = speciesData[button.dataset.species];
+        document.querySelectorAll(".species-tab").forEach((tab) => {
+          tab.setAttribute("aria-pressed", String(tab === button));
+        });
+        document.getElementById("species-title").textContent = species.title;
+        document.getElementById("species-island").textContent = species.islands;
+        document.getElementById("species-description").textContent = species.description;
+        document.getElementById("species-bill").textContent = species.bill;
+        document.getElementById("species-flipper").textContent = species.flipper;
+        document.getElementById("species-mass").textContent = species.mass;
+      });
+    });
+
+    const charts = {
+      bill: {
+        title: "Bill length by species",
+        image: "images/bill_length.png",
+        alt: "Box plot comparing bill length in millimeters across Adelie, Chinstrap and Gentoo penguins",
+        caption: "Bill length helps distinguish species, especially when read alongside flipper length and body mass."
+      },
+      flipper: {
+        title: "Flipper length by species",
+        image: "images/flipper_length.png",
+        alt: "Box plot comparing flipper length in millimeters across Adelie, Chinstrap and Gentoo penguins",
+        caption: "Gentoo penguins have noticeably longer flippers on average in this cleaned dataset."
+      },
+      mass: {
+        title: "Body mass by species",
+        image: "images/body_mass.png",
+        alt: "Box plot comparing body mass in grams across Adelie, Chinstrap and Gentoo penguins",
+        caption: "Body mass shows a clear separation for Gentoo, while Adelie and Chinstrap averages are closer."
+      },
+      species: {
+        title: "Species distribution",
+        image: "images/species_distribution.png",
+        alt: "Bar chart showing the number of Adelie, Chinstrap and Gentoo observations",
+        caption: "The cleaned set contains 146 Adelie, 68 Chinstrap and 119 Gentoo observations."
+      },
+      correlation: {
+        title: "Feature correlation",
+        image: "images/correlation_heatmap.png",
+        alt: "Correlation heatmap of numeric features in the Palmer Penguins dataset",
+        caption: "The heatmap highlights relationships between numeric measurements; correlation alone does not establish cause."
+      }
+    };
+
+    document.querySelectorAll(".chart-tab").forEach((button) => {
+      button.addEventListener("click", () => {
+        const chart = charts[button.dataset.chart];
+        document.querySelectorAll(".chart-tab").forEach((tab) => {
+          tab.setAttribute("aria-pressed", String(tab === button));
+        });
+        const image = document.getElementById("chart-image");
+        image.src = chart.image;
+        image.alt = chart.alt;
+        document.getElementById("chart-title").textContent = chart.title;
+        document.getElementById("chart-caption").textContent = chart.caption;
+      });
+    });
+  </script>
+</body>
+</html>

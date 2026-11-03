@@ -136,56 +136,47 @@ Actual accuracy values are available in the Jupyter Notebook.
 ```text
 ML-011-Penguin-Classification/
 │
+├── app.py
 ├── data/
-├── notebooks/
-├── models/
 ├── images/
+├── index.html
+├── models/
+│   ├── encoder.pkl
+│   ├── penguin_model.pkl
+│   └── scaler.pkl
+├── ML_011_Penguin_Classification.ipynb
+├── train_model.py
 ├── requirements.txt
 ├── README.md
 └── .gitignore
 ```
 
-## 11. How to Run the Project
+## 11. Run the Streamlit Web App
 
-### Step 1: Clone Repository
+Open the project folder in VS Code, then open a PowerShell terminal in that folder.
 
-```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
-```
-
-### Step 2: Open Project
-
-```bash
-cd ML-011-Penguin-Classification
-```
-
-### Step 3: Create Virtual Environment
-
-```bash
+```powershell
 python -m venv .venv
-```
-
-### Step 4: Activate Environment
-
-Windows:
-
-```bash
 .venv\Scripts\activate
+python -m pip install -r requirements.txt
+python -m streamlit run app.py
 ```
 
-### Step 5: Install Dependencies
+Streamlit opens the app at `http://localhost:8501`. In VS Code, you can also run
+these commands from **Terminal → New Terminal** after opening this project.
 
-```bash
-pip install -r requirements.txt
-```
+The saved model and encoder are included in `models/`. To rebuild them, run
+`python train_model.py` from the project folder. This uses the original
+notebook's cleaned data, feature encoding and stratified train/test split, and
+verifies that the existing scaler matches before reusing it.
 
-### Step 6: Start Jupyter Notebook
+The prediction form asks for bill length, bill depth, flipper length, body
+mass, island and sex. The original model also uses observation year, so the app
+uses 2008 (the middle year in the dataset) as a fixed value rather than asking
+for an additional input.
 
-```bash
-jupyter notebook
-```
-
-Open the notebook inside the notebooks folder and run its cells.
+The original analysis remains in `ML_011_Penguin_Classification.ipynb` and can
+be opened in VS Code with the Jupyter extension.
 
 ## 12. Learning Outcomes
 
